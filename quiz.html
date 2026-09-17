@@ -370,6 +370,93 @@
     .button-group{flex-direction:column;}
     .btn-prev{flex:1;}
   }
+
+  /* ---- Start / name screen ---- */
+  .start-section{display:none;text-align:left;animation:rise .35s ease;}
+  .start-section.active{display:block;}
+  .start-section p.intro{color:var(--muted);font-size:0.95rem;margin-bottom:22px;line-height:1.6;}
+  .field-label{
+    display:block;
+    font-size:0.85rem;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .field-input{
+    width:100%;
+    padding:13px 16px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-family:inherit;
+    font-size:1rem;
+    background:var(--paper);
+    color:var(--ink);
+    margin-bottom:8px;
+    transition:border-color .15s ease;
+  }
+  .field-input:focus{outline:none;border-color:var(--ink);}
+  .field-error{
+    color:var(--coral);
+    font-size:0.82rem;
+    font-weight:600;
+    min-height:18px;
+    margin-bottom:14px;
+  }
+  .btn-start{
+    background:var(--ink);
+    border:1.5px solid var(--ink);
+    color:var(--paper);
+    width:100%;
+    padding:14px;
+    font-size:1rem;
+    box-shadow:3px 3px 0 var(--amber-deep);
+  }
+  .btn-start:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--amber-deep);}
+
+  .send-status{
+    margin-top:14px;
+    font-size:0.85rem;
+    color:var(--muted);
+    min-height:18px;
+  }
+  .send-status.error{color:var(--coral);font-weight:600;}
+  .send-status.ok{color:var(--teal);font-weight:600;}
+
+  /* ---- Leaderboard ---- */
+  .leaderboard{
+    margin-top:30px;
+    text-align:left;
+    border-top:1.5px solid var(--line);
+    padding-top:24px;
+  }
+  .leaderboard-title{
+    font-family:'Fraunces',serif;
+    font-size:1.1rem;
+    font-weight:600;
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .leaderboard-empty{
+    color:var(--muted);
+    font-size:0.88rem;
+  }
+  .leaderboard-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .leaderboard-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    background:var(--paper);
+  }
+  .leaderboard-item.rank-1{border-color:var(--amber-deep);background:#FCF1DC;}
+  .leaderboard-item.rank-2{border-color:#9CA3AF;}
+  .leaderboard-item.rank-3{border-color:#B8804A;}
+  .leaderboard-medal{font-size:1.2rem;flex-shrink:0;width:24px;text-align:center;}
+  .leaderboard-name{font-weight:600;flex:1;font-size:0.92rem;}
+  .leaderboard-score{font-weight:700;font-size:0.92rem;color:var(--teal);}
 </style>
 </head>
 <body>
@@ -390,8 +477,16 @@
         </div>
         <div class="scrubber-label">
           <span id="scrubberNow">Soal 1</span>
-          <span id="scrubberTotal">dari 5</span>
+          <span id="scrubberTotal">dari 10</span>
         </div>
+      </div>
+
+      <div class="start-section active" id="startSection">
+        <p class="intro">Isi namamu dulu ya sebelum mulai. Nama & nilai kamu akan tercatat otomatis.</p>
+        <label class="field-label" for="participantName">Nama lengkap</label>
+        <input type="text" id="participantName" class="field-input" placeholder="Contoh: Fadya Halwa" autocomplete="off">
+        <div class="field-error" id="nameError"></div>
+        <button class="btn-start" onclick="startQuiz()">Mulai Quiz</button>
       </div>
 
       <div id="quizContainer"></div>
@@ -404,13 +499,20 @@
         <div class="results-text" id="resultsText"></div>
         <div class="results-message" id="resultsMessage"></div>
         <div class="answer-review" id="answerReview"></div>
+        <div class="send-status" id="sendStatus"></div>
+
+        <div class="leaderboard">
+          <div class="leaderboard-title">🏆 Skor Tertinggi</div>
+          <div id="leaderboardContent"><div class="leaderboard-empty">Memuat papan skor...</div></div>
+        </div>
+
         <button class="btn-restart" onclick="restartQuiz()">Mulai Ulang Quiz</button>
       </div>
     </div>
   </div>
 
 <script>
-  const quizData = [
+  const allQuestions = [
     {
       question: "Seorang dosen ingin menjelaskan cara pengucapan bahasa asing. Media mana yang paling tepat?",
       options: [
@@ -460,12 +562,106 @@
         { text: "Durasi yang panjang", correct: false }
       ],
       explanation: "Kesesuaian dengan tujuan pembelajaran adalah prioritas utama karena tanpa ini, media audio tidak akan mencapai hasil pembelajaran yang diharapkan, terlepas dari kualitas atau menariknya materi."
+    },
+    {
+      question: "Manakah kondisi yang PALING kurang sesuai jika hanya menggunakan media audio?",
+      options: [
+        { text: "Melatih kemampuan listening bahasa asing", correct: false },
+        { text: "Mendengarkan pembacaan puisi", correct: false },
+        { text: "Mempelajari bentuk dan posisi suatu objek secara visual-spasial", correct: true },
+        { text: "Mendengarkan materi melalui radio pendidikan", correct: false }
+      ],
+      explanation: "Karena media audio tidak memiliki unsur visual, materi yang bersifat visual-spasial sulit disampaikan."
+    },
+    {
+      question: "Manakah siswa yang paling mungkin mengalami kesulitan memahami media audio?",
+      options: [
+        { text: "Siswa yang memperhatikan dan mencatat poin penting", correct: false },
+        { text: "Siswa yang mendengarkan dengan fokus", correct: false },
+        { text: "Siswa yang memiliki kemampuan menyimak rendah", correct: true },
+        { text: "Siswa yang sibuk scroll HP saat audio diputar", correct: false, feedback: "Kalau jawab ini, sebenarnya kamu juga nggak salah sih... tapi itu masalahnya beda lagi. Yang ditanya di sini soal kemampuan menyimak, bukan soal fokus/distraksi." }
+      ],
+      explanation: "Siswa dengan kemampuan menyimak rendah akan lebih sulit menangkap dan mengolah informasi yang hanya disampaikan lewat suara, karena audio menuntut pemahaman pendengaran secara langsung tanpa bantuan visual."
+    },
+    {
+      question: "Kalau media audio hanya menyampaikan informasi melalui pendengaran, lalu kamu masih mencari gambarnya di layar, berarti kamu...",
+      options: [
+        { text: "Sedang memahami materi", correct: false },
+        { text: "Sedang berimajinasi", correct: false },
+        { text: "Kurang menyimak materi", correct: true },
+        { text: "Sedang menguji media", correct: false }
+      ],
+      wrongFeedback: "Waduh, gambarnya nggak ada, bang. Dari tadi yang dipakai telinga, bukan mata.",
+      explanation: "Audio pembelajaran mengandalkan indra pendengaran, jadi kalau kamu masih mencari-cari visual di layar, tandanya kamu belum sepenuhnya fokus menyimak lewat telinga."
+    },
+    {
+      question: "Dalam media audio pembelajaran, musik dan sound effect sebaiknya digunakan untuk...",
+      options: [
+        { text: "Membuat audio semenarik mungkin meskipun mengganggu isi pesan", correct: false },
+        { text: "Menggantikan sebagian besar penjelasan narator", correct: false },
+        { text: "Menguatkan suasana tanpa mengalihkan perhatian dari isi pesan", correct: true },
+        { text: "Membuat durasi audio menjadi lebih panjang", correct: false }
+      ],
+      explanation: "Kata kuncinya \u201cpenguat suasana, bukan mengalihkan perhatian\u201d \u2014 musik dan efek suara harus mendukung isi pesan, bukan menggeser fokus pendengar dari materi utamanya."
+    },
+    {
+      question: "Jika audio berdurasi 30 menit digunakan untuk materi yang sebenarnya bisa dijelaskan dalam 5 menit, masalah yang paling mungkin terjadi adalah...",
+      options: [
+        { text: "Siswa semakin pintar", correct: false },
+        { text: "Siswa semakin fokus", correct: false },
+        { text: "Siswa berpotensi bosan dan kehilangan konsentrasi", correct: true },
+        { text: "Audio menjadi lebih efektif", correct: false }
+      ],
+      wrongFeedback: "30 menit dengerin audio? Yang ada bukan materinya yang masuk, tapi ngantuknya.",
+      explanation: "Durasi yang tidak sebanding dengan kompleksitas materi membuat audio bertele-tele, sehingga siswa gampang bosan dan kehilangan konsentrasi sebelum materi selesai."
     }
   ];
 
+  function shuffleArray(arr){
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function pickFeedback(question, optIndex){
+    const opt = question.options[optIndex];
+    if (opt.feedback) return opt.feedback;
+    if (!opt.correct && question.wrongFeedback) return question.wrongFeedback;
+    return question.explanation;
+  }
+
+  let quizData = [];
   const idxLabels = ['A','B','C','D','E','F'];
   let currentQuestion = 0;
   let answers = [];
+  let participantName = '';
+
+  // GANTI URL DI BAWAH INI dengan URL Web App dari Google Apps Script kamu
+  // (lihat panduan setup Google Sheet yang diberikan terpisah)
+  const GOOGLE_SCRIPT_URL = 'PASTE_URL_APPS_SCRIPT_DI_SINI';
+
+  function startQuiz(){
+    const input = document.getElementById('participantName');
+    const errorEl = document.getElementById('nameError');
+    const name = input.value.trim();
+
+    if (name.length < 2){
+      errorEl.textContent = 'Masukkan nama yang valid ya (minimal 2 huruf).';
+      input.focus();
+      return;
+    }
+
+    errorEl.textContent = '';
+    participantName = name;
+    quizData = shuffleArray(allQuestions);
+    currentQuestion = 0;
+    answers = [];
+    document.getElementById('startSection').classList.remove('active');
+    initQuiz();
+  }
 
   function initQuiz(){ renderQuestion(); }
 
@@ -524,7 +720,7 @@
     if (locked){
       const isCorrect = quizData[currentQuestion].options[answers[currentQuestion]].correct;
       feedback.classList.add('active', isCorrect ? 'correct' : 'incorrect');
-      feedback.innerHTML = `<strong>${isCorrect ? 'Tepat sekali!' : 'Belum pas.'}</strong>${question.explanation}`;
+      feedback.innerHTML = `<strong>${isCorrect ? 'Tepat sekali!' : 'Belum pas.'}</strong>${pickFeedback(question, answers[currentQuestion])}`;
     }
 
     section.appendChild(tag);
@@ -557,7 +753,7 @@
 
     const feedback = document.getElementById(`feedback-${currentQuestion}`);
     feedback.classList.add('active', isCorrect ? 'correct' : 'incorrect');
-    feedback.innerHTML = `<strong>${isCorrect ? 'Tepat sekali!' : 'Belum pas.'}</strong>${quizData[currentQuestion].explanation}`;
+    feedback.innerHTML = `<strong>${isCorrect ? 'Tepat sekali!' : 'Belum pas.'}</strong>${pickFeedback(quizData[currentQuestion], index)}`;
 
     updateButtons();
 
@@ -673,6 +869,82 @@
     document.getElementById('resultsMessage').textContent = message;
     renderAnswerReview();
     document.getElementById('resultsSection').classList.add('active');
+
+    sendResultsToSheet(score, quizData.length, percentage);
+    fetchLeaderboard();
+  }
+
+  function fetchLeaderboard(){
+    const el = document.getElementById('leaderboardContent');
+
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'PASTE_URL_APPS_SCRIPT_DI_SINI'){
+      el.innerHTML = '<div class="leaderboard-empty">Papan skor belum aktif (URL Google Script belum diisi).</div>';
+      return;
+    }
+
+    el.innerHTML = '<div class="leaderboard-empty">Memuat papan skor...</div>';
+
+    fetch(GOOGLE_SCRIPT_URL)
+      .then(res => res.json())
+      .then(top3 => {
+        if (!Array.isArray(top3) || top3.length === 0){
+          el.innerHTML = '<div class="leaderboard-empty">Belum ada data peserta.</div>';
+          return;
+        }
+        const medals = ['🥇','🥈','🥉'];
+        const list = document.createElement('ul');
+        list.className = 'leaderboard-list';
+        top3.forEach((entry, i) => {
+          const li = document.createElement('li');
+          li.className = `leaderboard-item rank-${i + 1}`;
+          li.innerHTML = `
+            <span class="leaderboard-medal">${medals[i] || (i + 1)}</span>
+            <span class="leaderboard-name">${entry.nama}</span>
+            <span class="leaderboard-score">${entry.skor}/${entry.total}</span>
+          `;
+          list.appendChild(li);
+        });
+        el.innerHTML = '';
+        el.appendChild(list);
+      })
+      .catch(() => {
+        el.innerHTML = '<div class="leaderboard-empty">Gagal memuat papan skor.</div>';
+      });
+  }
+
+  function sendResultsToSheet(score, total, percentage){
+    const statusEl = document.getElementById('sendStatus');
+
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'PASTE_URL_APPS_SCRIPT_DI_SINI'){
+      statusEl.textContent = '';
+      return;
+    }
+
+    statusEl.textContent = 'Menyimpan hasil...';
+    statusEl.className = 'send-status';
+
+    const payload = {
+      nama: participantName,
+      skor: score,
+      total: total,
+      persentase: percentage.toFixed(0),
+      waktu: new Date().toLocaleString('id-ID')
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    })
+    .then(() => {
+      statusEl.textContent = 'Hasil kamu sudah tersimpan ✓';
+      statusEl.className = 'send-status ok';
+    })
+    .catch(() => {
+      statusEl.textContent = 'Gagal menyimpan hasil (cek koneksi internet).';
+      statusEl.className = 'send-status error';
+    });
   }
 
   function renderAnswerReview(){
@@ -700,12 +972,21 @@
   function restartQuiz(){
     currentQuestion = 0;
     answers = [];
+    participantName = '';
+    document.getElementById('participantName').value = '';
+    document.getElementById('sendStatus').textContent = '';
+    document.getElementById('leaderboardContent').innerHTML = '<div class="leaderboard-empty">Memuat papan skor...</div>';
     document.getElementById('quizContainer').style.display = 'block';
+    document.getElementById('quizContainer').innerHTML = '';
     document.getElementById('resultsSection').classList.remove('active');
-    renderQuestion();
+    document.getElementById('startSection').classList.add('active');
   }
 
-  initQuiz();
+  document.getElementById('scrubberTotal').textContent = `dari ${allQuestions.length}`;
+
+  document.getElementById('participantName').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') startQuiz();
+  });
 </script>
 </body>
 </html>

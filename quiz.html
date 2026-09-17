@@ -994,7 +994,7 @@
   function sendResultsToSheet(score, total, percentage, durationText){
     const statusEl = document.getElementById('sendStatus');
 
-    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'PASTE_URL_APPS_SCRIPT_DI_SINI'){
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyZjkklwEtl8cRlVB27kPVfdkqTpK5vm3wE7S03O7Em06vHGP0Burh7-tQlKS8xiVc/exec'){
       statusEl.textContent = '';
       return;
     }

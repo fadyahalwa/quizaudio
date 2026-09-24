@@ -689,8 +689,7 @@
   let quizStartTime = 0;
   let timerInterval = null;
 
-  // GANTI URL DI BAWAH INI dengan URL Web App dari Google Apps Script kamu
-  // (lihat panduan setup Google Sheet yang diberikan terpisah)
+
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLs_u8csaO_IhnGsi-BPkFdG3FMMddXlaT7_2A5341jAT2MMvPFXeLvdnzG3CkrJqT/exec';
 
   function startQuiz(){
@@ -956,7 +955,7 @@
   function fetchLeaderboard(){
     const el = document.getElementById('leaderboardContent');
 
-    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'PASTE_URL_APPS_SCRIPT_DI_SINI'){
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzLs_u8csaO_IhnGsi-BPkFdG3FMMddXlaT7_2A5341jAT2MMvPFXeLvdnzG3CkrJqT/exec'){
       el.innerHTML = '<div class="leaderboard-empty">Papan skor belum aktif (URL Google Script belum diisi).</div>';
       return;
     }

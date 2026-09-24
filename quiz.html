@@ -650,7 +650,7 @@
         { text: "Menguatkan suasana tanpa mengalihkan perhatian dari isi pesan", correct: true },
         { text: "Membuat durasi audio menjadi lebih panjang", correct: false }
       ],
-      explanation: "Kata kuncinya "penguat suasana, bukan mengalihkan perhatian" — musik dan efek suara harus mendukung isi pesan, bukan menggeser fokus pendengar dari materi utamanya."
+      explanation: "Kata kuncinya \u201cpenguat suasana, bukan mengalihkan perhatian\u201d \u2014 musik dan efek suara harus mendukung isi pesan, bukan menggeser fokus pendengar dari materi utamanya."
     },
     {
       question: "Jika audio berdurasi 30 menit digunakan untuk materi yang sebenarnya bisa dijelaskan dalam 5 menit, masalah yang paling mungkin terjadi adalah...",
@@ -689,12 +689,8 @@
   let quizStartTime = 0;
   let timerInterval = null;
 
+
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLs_u8csaO_IhnGsi-BPkFdG3FMMddXlaT7_2A5341jAT2MMvPFXeLvdnzG3CkrJqT/exec';
-
-
-  function isValidGoogleScriptURL(){
-    return GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE';
-  }
 
   function startQuiz(){
     const input = document.getElementById('participantName');
@@ -815,10 +811,11 @@
     answers[currentQuestion] = index;
     const isCorrect = quizData[currentQuestion].options[index].correct;
 
+    // lock & mark all options immediately
     const allOptions = element.parentElement.querySelectorAll('.option');
     allOptions.forEach((el, i) => {
       el.classList.add('locked');
-      el.replaceWith(el.cloneNode(true));
+      el.replaceWith(el.cloneNode(true)); // strip click listeners
     });
     const refreshed = document.querySelectorAll('.option');
     refreshed.forEach((el, i) => {
@@ -958,8 +955,8 @@
   function fetchLeaderboard(){
     const el = document.getElementById('leaderboardContent');
 
-    if (!isValidGoogleScriptURL()){
-      el.innerHTML = '<div class="leaderboard-empty">Papan skor belum aktif (konfigurasi Google Script URL dulu).</div>';
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === ''){
+      el.innerHTML = '<div class="leaderboard-empty">Papan skor belum aktif (URL Google Script belum diisi).</div>';
       return;
     }
 
@@ -996,7 +993,7 @@
   function sendResultsToSheet(score, total, percentage, durationText){
     const statusEl = document.getElementById('sendStatus');
 
-    if (!isValidGoogleScriptURL()){
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'Google Script Belum Di tetapkan'){
       statusEl.textContent = '';
       return;
     }
